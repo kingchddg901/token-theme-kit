@@ -1,0 +1,17 @@
+{
+  "name": "theme-kit",
+  "version": "0.0.1",
+  "description": "Declare design tokens, get a self-building editor; end users re-theme without touching CSS. HA-first, plugin-point core.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./cvd": "./src/plugins/cvd.js",
+    "./adapters/local-storage": "./src/adapters/local-storage.js"
+  },
+  "files": ["src", "README.md", "LICENSE"],
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": ["design-tokens", "theme", "theming", "css-variables", "home-assistant", "lovelace"],
+  "license": "MIT"
+}
