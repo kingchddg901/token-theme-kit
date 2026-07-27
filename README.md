@@ -8,7 +8,7 @@ Extracted from a Home Assistant Lovelace card, so it's HA-first — but it knows
 
 ## The board and the four studs
 
-The core (the "normal bricks" every user gets): a token **registry**, **color math**, **`applyTheme`** (tokens → CSS custom properties), a scoped **preview** engine, and a self-building **editor model**. Plus five primitive control types (color, alpha, number, select, toggle).
+The core (the "normal bricks" every user gets): a token **registry**, **color math**, **`applyTheme`** (tokens → CSS custom properties), a scoped **preview** engine, and a self-building **editor model**. Plus six primitive control types (color, alpha, number, size, select, toggle) — `number` is a raw value, `size` adds px, and any token can declare a `unit` (px/rem/ms/…).
 
 Everything domain-specific snaps onto one of four studs — and you pay for nothing you don't use:
 

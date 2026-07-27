@@ -16,7 +16,10 @@ import { parseColor, formatColor } from "./color.js";
 
 /** @typedef {{input:string, coerce?:Function, toCss:Function, defaultValue?:any}} ControlType */
 
-/** The five primitives every UI needs. */
+/**
+ * The primitives every UI needs. `toCss(value, token)` may read the token — a
+ * token can declare `unit` (e.g. "px" | "rem" | "ms" | "%") to attach a unit.
+ */
 export const BUILTIN_CONTROL_TYPES = {
   color: {
     input: "color",
@@ -33,9 +36,18 @@ export const BUILTIN_CONTROL_TYPES = {
     defaultValue: 1,
   },
   number: {
+    // A RAW number — no unit assumed (z-index, line-height, opacity multiplier).
+    // Declare `unit` on the token for px/rem/ms/etc.
     input: "number",
     coerce: (v) => Number(v),
-    toCss: (v) => (typeof v === "number" ? `${v}px` : String(v)),
+    toCss: (v, token) => (token?.unit ? `${v}${token.unit}` : String(v)),
+    defaultValue: 0,
+  },
+  size: {
+    // A length — defaults to px; override with `unit` on the token.
+    input: "number",
+    coerce: (v) => Number(v),
+    toCss: (v, token) => `${v}${token?.unit ?? "px"}`,
     defaultValue: 0,
   },
   select: {

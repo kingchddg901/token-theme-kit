@@ -8,14 +8,18 @@ test("computeVars resolves override > default > type-default, and names vars", (
     id: "s",
     tokens: [
       { key: "surface-bg", type: "color", default: "#101418" },
-      { key: "radius", type: "number", default: 12 },
+      { key: "radius", type: "size", default: 12 },              // size → px
+      { key: "z", type: "number", default: 5 },                  // raw number, no unit
+      { key: "dur", type: "number", unit: "ms", default: 200 },  // unit from the token
       { key: "opacity", type: "alpha" }, // no default → falls back to type default (1)
     ],
   });
 
   const vars = kit.computeVars({ "surface-bg": "#e11d48" });
   assert.equal(vars["--surface-bg"], "#e11d48"); // override wins
-  assert.equal(vars["--radius"], "12px"); // number → px
+  assert.equal(vars["--radius"], "12px"); // size appends px
+  assert.equal(vars["--z"], "5"); // number is bare — no px
+  assert.equal(vars["--dur"], "200ms"); // unit declared on the token
   assert.equal(vars["--opacity"], "1"); // type default
 });
 

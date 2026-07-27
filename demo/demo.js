@@ -27,7 +27,7 @@ kit.registerTokenGroup({
     { key: "bg", type: "color", default: "#111820" },
     { key: "card", type: "color", default: "#1b2530" },
     { key: "text", type: "color", default: "#e6edf3" },
-    { key: "radius", type: "number", default: 14 },
+    { key: "radius", type: "size", default: 14 },
   ],
 });
 kit.registerTokenGroup({

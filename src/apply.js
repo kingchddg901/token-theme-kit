@@ -21,7 +21,7 @@ export function computeVars(tokens, values, controlTypes, prefix = "--") {
     const ct = controlTypes.get(decl.type) || controlTypes.get("color");
     const value = pick(values?.[key], decl.default, ct.defaultValue);
     const cssVar = decl.cssVar || prefix + key;
-    out[cssVar] = ct.toCss(value);
+    out[cssVar] = ct.toCss(value, decl); // decl lets toCss read a token's `unit`, etc.
   }
   return out;
 }
