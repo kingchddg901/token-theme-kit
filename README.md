@@ -1,28 +1,29 @@
-# theme-kit
-
-> Working name — rename freely.
+# token-theme-kit
 
 **Declare a design token in a group file → an editor builds its own UI for it → your users re-theme through that UI, never touching CSS.**
 
-Extracted from a Home Assistant Lovelace card, so it's HA-first — but it knows nothing about HA, or about your tokens. The core is pure machinery with **zero domain knowledge**; everything powerful is an opt-in plugin.
+A framework-agnostic theming kit. Extracted from a Home Assistant Lovelace card, so it's HA-friendly — but the core knows nothing about HA, or about your tokens. It's pure machinery with **zero domain knowledge**; everything powerful is an opt-in plugin.
+
+📚 **Docs:** [Concepts](docs/concepts.md) · [API reference](docs/api.md)
 
 ## The board and the four studs
 
-The core (the "normal bricks" every user gets): a token **registry**, **color math**, **`applyTheme`** (tokens → CSS custom properties), a scoped **preview** engine, and a self-building **editor model**. Plus six primitive control types (color, alpha, number, size, select, toggle) — `number` is a raw value, `size` adds px, and any token can declare a `unit` (px/rem/ms/…).
+The core (the "normal bricks" every user gets): a token **registry**, **color math**, **`applyTheme`** (tokens → CSS custom properties), a scoped **preview** engine, and a self-building **editor model**. Plus six primitive control types (`color, alpha, number, size, select, toggle`) — `number` is a raw value, `size` adds px, and any token can declare a `unit` (px/rem/ms/…).
 
-Everything domain-specific snaps onto one of four studs — and you pay for nothing you don't use:
+Everything domain-specific snaps onto a stud — and you pay for nothing you don't use:
 
 | Stud | Method | You plug in… |
 |------|--------|--------------|
 | #1 tokens | `registerTokenGroup(group)` | your token groups |
-| #2 controls | `registerControlType(name, spec)` | custom editor widgets (a texture picker, an icon selector) |
-| #3 verdicts | `registerValidator(fn)` | checks like CVD / colorblind safety (`theme-kit/cvd`) |
-| #4 storage | `setAdapter(adapter)` | persistence (localStorage default; HA `Store` is a plugin) |
+| #2 controls | `registerControlType(name, spec)` | a token type's logic (parse / toCss) |
+| #3 verdicts | `registerValidator(fn)` | checks like CVD / colorblind safety (`token-theme-kit/cvd`) |
+| #4 storage | `setAdapter(adapter)` | persistence (localStorage default; HA store is a plugin) |
+| view | `editor.registerWidget(input, renderer)` | a custom widget for the self-building editor ("plugin for the plugins") |
 
 ## Minimum (a basic user)
 
 ```js
-import { createThemeKit } from "theme-kit";
+import { createThemeKit } from "token-theme-kit";
 
 const kit = createThemeKit();
 kit.registerTokenGroup({
@@ -40,38 +41,45 @@ Author your CSS once against `var(--accent)`. Users change the value through the
 Same core — you're just your own best plugin author:
 
 ```js
-import { cvdValidator } from "theme-kit/cvd";
-import { haUserDataAdapter } from "theme-kit/adapters/ha";
+import { cvdValidator } from "token-theme-kit/cvd";
+import { haUserDataAdapter } from "token-theme-kit/adapters/ha";
+import { defineThemeKitEditor } from "token-theme-kit/element";
 
 kit.registerControlType("floor-texture", { input: "texture-picker", toCss: v => `url(/tex/${v}.png)` });
 kit.registerValidator(cvdValidator({ pairs: [{ fg: "text", bg: "card" }] }));
-kit.setAdapter(haUserDataAdapter(hass));   // persist per-user, synced across devices
-kit.registerTokenGroup(floorGroup);        // + a dozen more
+kit.setAdapter(haUserDataAdapter(() => hass)); // persist per-user, synced across devices
+kit.registerTokenGroup(floorGroup);            // + a dozen more
+
+defineThemeKitEditor();
+const editor = document.createElement("theme-kit-editor");
+editor.previewTarget = cardEl;
+editor.registerWidget("texture-picker", (control, { onChange, document }) => { /* your widget */ });
+editor.kit = kit; // self-builds, including your custom control
 ```
 
-## Self-building editor
+## The self-building editor
 
-The editor is data, not code. `kit.editorModel(values)` walks the registry into grouped **controls** — label, widget hint, current value, validator verdicts. A view renders that however it likes (stacked, grid, tabs — the model has no opinion). Add a token, a control appears. Register a control type, the editor knows how to render it. No editor code changes, ever.
+The editor is data, not code. `kit.editorModel(values)` walks the registry into grouped **controls** — label, widget hint, current value, validator verdicts. A view renders that however it likes (stacked, grid, tabs — the model has no opinion).
+
+`token-theme-kit/element` is the reference view: a `<theme-kit-editor>` web component with a stacked layout, live preview, and a **widget registry** (`registerWidget`) so custom control types get custom UI — the "plugin for the plugins." It's focus-safe: a value change repaints preview + verdicts only, never the inputs.
+
+Add a token, a control appears. Register a control type + a widget, the editor draws it. No editor code changes, ever.
 
 ## Persistence (stud #4)
 
-The default adapter is `localStorage` (zero-install, per-browser). For Home Assistant, `theme-kit/adapters/ha` persists to the logged-in user's frontend store — **cross-device, no custom integration required** — and debounces writes so dragging a control doesn't spam the socket:
-
-```js
-import { haUserDataAdapter } from "theme-kit/adapters/ha";
-
-kit.setAdapter(haUserDataAdapter(() => this.hass)); // pass a getter; HA swaps hass each update
-```
-
-Any `{ load(): Promise<values>, save(values): Promise<void> }` object works, so a server-side / integration-backed adapter is a drop-in.
+The default adapter is `localStorage` (zero-install, per-browser). For Home Assistant, `token-theme-kit/adapters/ha` persists to the logged-in user's frontend store — **cross-device, no custom integration required** — and debounces writes so dragging a control doesn't spam the socket. Any `{ load(): Promise<values>, save(values): Promise<void> }` object works, so a server-side / integration-backed adapter is a drop-in.
 
 ## Run
 
 ```bash
-npm test                 # node --test — pure logic, no DOM
+npm test                 # node --test — pure logic, no DOM (26 cases)
 npx serve demo           # then open the printed URL for the live editor demo
 ```
 
 ## Status
 
-Core + four studs + CVD + **localStorage & HA adapters**, 21 tests green. Next: a reference editor web component (`theme-kit/element`), then dogfooding by migrating the origin card to consume this.
+Core + four studs + CVD + localStorage & HA adapters + the `<theme-kit-editor>` element + widget registry. **26 tests green.** Dogfood-validated against a real 406-token Lovelace card: `computeVars` reproduces all 406 CSS variables 1:1, and `editorModel` reproduces the card's 406-control editor structure 1:1.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

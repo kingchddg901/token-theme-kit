@@ -3,7 +3,7 @@
  *
  * Nothing in the core imports this; the 99% never load it. Import it only if
  * you care, and register it:
- *   import { cvdValidator } from "theme-kit/plugins/cvd";
+ *   import { cvdValidator } from "token-theme-kit/cvd";
  *   kit.registerValidator(cvdValidator({ pairs: [{ fg: "text", bg: "surface-bg" }] }));
  *
  * This ships a real WCAG-contrast check over declared foreground/background

@@ -1,5 +1,5 @@
 /**
- * theme-kit — public API barrel.  (Working name; rename freely.)
+ * token-theme-kit — public API barrel.
  *
  * The board + five primitive control types are all a basic user imports.
  * Studs (registerControlType / registerValidator / setAdapter) are on the kit

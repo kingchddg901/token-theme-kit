@@ -1,5 +1,5 @@
 {
-  "name": "theme-kit",
+  "name": "token-theme-kit",
   "version": "0.0.1",
   "description": "Declare design tokens, get a self-building editor; end users re-theme without touching CSS. HA-first, plugin-point core.",
   "type": "module",

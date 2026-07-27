@@ -8,7 +8,7 @@
  * drawn via the widget registry (the "plugin for the plugins", `registerWidget`).
  *
  * Usage:
- *   import { defineThemeKitEditor } from "theme-kit/element";
+ *   import { defineThemeKitEditor } from "token-theme-kit/element";
  *   defineThemeKitEditor();                       // registers <theme-kit-editor>
  *   const ed = document.createElement("theme-kit-editor");
  *   ed.previewTarget = someCardElement;           // where var(--token) is applied
