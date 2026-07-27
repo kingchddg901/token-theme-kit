@@ -20,7 +20,7 @@ export function buildEditorModel({ registry, controlTypes, validators, values = 
     id: g.id,
     label: g.label,
     controls: g.tokens.map((t) => {
-      const ct = controlTypes.get(t.type) || controlTypes.get("color");
+      const ct = controlTypes.get(t.type); // unknown → `raw`, not color
       return {
         key: t.key,
         label: t.label,
@@ -42,7 +42,7 @@ export function buildEditorModel({ registry, controlTypes, validators, values = 
 export function resolveValues(tokens, values, controlTypes) {
   const out = {};
   for (const [key, decl] of tokens) {
-    const ct = controlTypes.get(decl.type) || controlTypes.get("color");
+    const ct = controlTypes.get(decl.type); // unknown → `raw`, not color
     const raw = values?.[key] !== undefined ? values[key] : decl.default;
     out[key] = raw !== undefined ? (ct.coerce ? ct.coerce(raw) : raw) : ct.defaultValue;
   }

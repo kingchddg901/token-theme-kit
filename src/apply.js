@@ -18,7 +18,7 @@
 export function computeVars(tokens, values, controlTypes, prefix = "--") {
   const out = {};
   for (const [key, decl] of tokens) {
-    const ct = controlTypes.get(decl.type) || controlTypes.get("color");
+    const ct = controlTypes.get(decl.type); // unknown types fall back to `raw`, not color
     const value = pick(values?.[key], decl.default, ct.defaultValue);
     const cssVar = decl.cssVar || prefix + key;
     out[cssVar] = ct.toCss(value, decl); // decl lets toCss read a token's `unit`, etc.

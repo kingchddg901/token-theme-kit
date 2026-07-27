@@ -77,6 +77,7 @@ export const BUILTIN_CONTROL_TYPES = {
 /** Registry of control types: built-ins plus whatever a consumer snaps in. */
 export function createControlTypeRegistry() {
   const types = new Map(Object.entries(BUILTIN_CONTROL_TYPES));
+  const warned = new Set();
   return {
     /** stud #2 — register a custom control type. */
     register(name, spec) {
@@ -86,7 +87,26 @@ export function createControlTypeRegistry() {
       types.set(name, { input: "text", coerce: (v) => v, defaultValue: "", ...spec });
       return () => types.delete(name);
     },
-    get: (name) => types.get(name),
+    /**
+     * Resolve a control type. An UNKNOWN type falls back to `raw` (a harmless
+     * string field), NOT `color` — so a typo'd or un-registered type renders as
+     * text instead of a misleading black color swatch. Warns once per name, to
+     * match the registry's fail-loud-on-missing-key stance without throwing (a
+     * theme shouldn't crash on one stray type).
+     */
+    get(name) {
+      const t = types.get(name);
+      if (t) return t;
+      if (name != null && !warned.has(name)) {
+        warned.add(name);
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[theme-kit] unknown control type "${name}" — falling back to "raw" (string). ` +
+            `Register it via registerControlType() to type it correctly.`,
+        );
+      }
+      return types.get("raw");
+    },
     has: (name) => types.has(name),
     list: () => [...types.keys()],
   };

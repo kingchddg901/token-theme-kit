@@ -80,15 +80,15 @@ The default adapter is `localStorage` (zero-install, per-browser). For Home Assi
 ## Run
 
 ```bash
-npm test                 # node --test — pure logic, no DOM (26 cases)
+npm test                 # node --test — pure logic, no DOM (28 cases)
 npx serve demo           # then open the printed URL for the live editor demo
 ```
 
 ## Status
 
-Core + four studs + CVD + localStorage & HA adapters + the `<theme-kit-editor>` element + widget registry. **26 tests green.**
+Core + four studs + CVD + localStorage & HA adapters + the `<theme-kit-editor>` element + widget registry. **28 tests green** (incl. a large-registry test locking scale-1:1 and the no-`color`-fallback rule).
 
-Dogfooded against a separate, opinionated theme system — a Lovelace card of ~400 tokens across 25 groups (its token count is *dynamic*, so a live instance reads higher). The kit had never seen those tokens, yet `computeVars` carried every CSS variable and `editorModel` reproduced the card's control list group-for-group — including the string-valued tokens (`font` / `shadow` / easing / …) carried by custom control types via stud #2. The point isn't fidelity to that system; it's **capacity** — the engine absorbed a 400-plus-token system it knew nothing about. Yours drops in the same way.
+Dogfooded against a separate, opinionated theme system — a Lovelace card of ~400 tokens across 25 groups (dynamic: optional sections add more, so a live instance reads higher). The kit had never seen those tokens. **`computeVars` reproduced every CSS variable 1:1** — verified unique and namespaced. **`editorModel` reproduced the group structure and every control**; its string-valued tokens (font / shadow / easing / …) resolve to the `raw` widget unless typed precisely via stud #2 — and nothing mis-types into a color picker. The point isn't fidelity to that system; it's **capacity** — the engine absorbed a 400-plus-token system it knew nothing about. Yours drops in the same way.
 
 ## License
 

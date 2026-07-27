@@ -90,6 +90,21 @@ kit.registerControlType("floor-texture", {
 
 Built-ins: `color`, `alpha` (0–1), `number` (bare; honors `token.unit`), `size` (px; honors `token.unit`), `select`, `toggle`, `raw` (string passed through as-is — `font-family`, `box-shadow`, easing curves, transforms).
 
+An **unknown / unregistered** type falls back to `raw` (a text field, with a one-time console warning) — **never `color`**, so a typo'd type name renders harmlessly rather than as a black color swatch.
+
+**Control type → widget.** These are two distinct lists: a *control type* defines value→CSS logic; a *widget* draws the control. Each control type names an `input` the view's widget registry resolves:
+
+| control type | `input` (widget) |
+|---|---|
+| color | color |
+| alpha | range |
+| number / size | number |
+| select | select |
+| toggle | checkbox |
+| raw | text |
+
+A custom control type just names an `input`; an input with no matching widget falls back to the text widget.
+
 ---
 
 ## Validators (stud #3)
