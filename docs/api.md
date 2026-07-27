@@ -90,6 +90,8 @@ kit.registerControlType("floor-texture", {
 
 Built-ins: `color`, `alpha` (0–1), `number` (bare; honors `token.unit`), `size` (px; honors `token.unit`), `select`, `toggle`, `raw` (string passed through as-is — `font-family`, `box-shadow`, easing curves, transforms).
 
+Need a unit other than px — ms, deg, %, rem? Use `number` with `unit`: `{ type: "number", unit: "ms", default: 180 }` gives a numeric (slider) control that emits `180ms`. `size` is just the px shorthand; there's deliberately no separate `duration`/`angle` type — `unit` generalizes them, so a "duration" is a `number` + `unit: "ms"`, not its own kind.
+
 An **unknown / unregistered** type falls back to `raw` (a text field, with a one-time console warning) — **never `color`**, so a typo'd type name renders harmlessly rather than as a black color swatch.
 
 **Control type → widget.** These are two distinct lists: a *control type* defines value→CSS logic; a *widget* draws the control. Each control type names an `input` the view's widget registry resolves:
