@@ -9,7 +9,7 @@
 | `token-theme-kit/adapters/local-storage` | default persistence adapter |
 | `token-theme-kit/adapters/ha` | Home Assistant frontend-store adapter |
 | `token-theme-kit/element` | the `<theme-kit-editor>` reference view |
-| `token-theme-kit/widgets` | the view-side widget registry |
+| `token-theme-kit/widgets` | the widget registry (`createWidgetRegistry`, `BUILTIN_WIDGETS`) — import directly **only if building your own view**; the `element` already uses it |
 
 ---
 
@@ -88,7 +88,7 @@ kit.registerControlType("floor-texture", {
 });
 ```
 
-Built-ins: `color`, `alpha` (0–1), `number` (raw; honors `token.unit`), `size` (px; honors `token.unit`), `select`, `toggle`.
+Built-ins: `color`, `alpha` (0–1), `number` (bare; honors `token.unit`), `size` (px; honors `token.unit`), `select`, `toggle`, `raw` (string passed through as-is — `font-family`, `box-shadow`, easing curves, transforms).
 
 ---
 

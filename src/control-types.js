@@ -63,6 +63,15 @@ export const BUILTIN_CONTROL_TYPES = {
     toCss: (v) => (v ? "1" : "0"),
     defaultValue: false,
   },
+  raw: {
+    // Any raw CSS string, passed through untouched — font-family, box-shadow,
+    // cubic-bezier(), transform, gradients. The value IS the CSS. This is the
+    // catch-all for the string-valued tokens every real system has.
+    input: "text",
+    coerce: (v) => v,
+    toCss: (v) => String(v),
+    defaultValue: "",
+  },
 };
 
 /** Registry of control types: built-ins plus whatever a consumer snaps in. */

@@ -12,6 +12,7 @@ test("computeVars resolves override > default > type-default, and names vars", (
       { key: "z", type: "number", default: 5 },                  // raw number, no unit
       { key: "dur", type: "number", unit: "ms", default: 200 },  // unit from the token
       { key: "opacity", type: "alpha" }, // no default → falls back to type default (1)
+      { key: "font", type: "raw", default: "Inter, system-ui, sans-serif" }, // raw string
     ],
   });
 
@@ -21,6 +22,7 @@ test("computeVars resolves override > default > type-default, and names vars", (
   assert.equal(vars["--z"], "5"); // number is bare — no px
   assert.equal(vars["--dur"], "200ms"); // unit declared on the token
   assert.equal(vars["--opacity"], "1"); // type default
+  assert.equal(vars["--font"], "Inter, system-ui, sans-serif"); // raw passes through untouched
 });
 
 test("prefix and per-token cssVar overrides", () => {

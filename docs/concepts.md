@@ -16,7 +16,7 @@ Think of it as a small board with well-defined studs. Everything powerful is a b
 - **`applyTheme`** (token values → CSS custom properties on an element)
 - a scoped **preview** engine (apply pending values, commit / revert)
 - a self-building **editor model** (registry → a list of typed controls)
-- six primitive **control types**: `color, alpha, number, size, select, toggle`
+- seven primitive **control types**: `color, alpha, number, size, select, toggle, raw` (`raw` = any string passed straight through — font-family, shadow, easing)
 
 **The studs — plug in only what you need:**
 
