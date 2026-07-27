@@ -41,16 +41,29 @@ Same core — you're just your own best plugin author:
 
 ```js
 import { cvdValidator } from "theme-kit/cvd";
+import { haUserDataAdapter } from "theme-kit/adapters/ha";
 
 kit.registerControlType("floor-texture", { input: "texture-picker", toCss: v => `url(/tex/${v}.png)` });
 kit.registerValidator(cvdValidator({ pairs: [{ fg: "text", bg: "card" }] }));
-kit.setAdapter(myHaStoreAdapter);
-kit.registerTokenGroup(floorGroup);   // + a dozen more
+kit.setAdapter(haUserDataAdapter(hass));   // persist per-user, synced across devices
+kit.registerTokenGroup(floorGroup);        // + a dozen more
 ```
 
 ## Self-building editor
 
 The editor is data, not code. `kit.editorModel(values)` walks the registry into grouped **controls** — label, widget hint, current value, validator verdicts. A view renders that however it likes (stacked, grid, tabs — the model has no opinion). Add a token, a control appears. Register a control type, the editor knows how to render it. No editor code changes, ever.
+
+## Persistence (stud #4)
+
+The default adapter is `localStorage` (zero-install, per-browser). For Home Assistant, `theme-kit/adapters/ha` persists to the logged-in user's frontend store — **cross-device, no custom integration required** — and debounces writes so dragging a control doesn't spam the socket:
+
+```js
+import { haUserDataAdapter } from "theme-kit/adapters/ha";
+
+kit.setAdapter(haUserDataAdapter(() => this.hass)); // pass a getter; HA swaps hass each update
+```
+
+Any `{ load(): Promise<values>, save(values): Promise<void> }` object works, so a server-side / integration-backed adapter is a drop-in.
 
 ## Run
 
@@ -61,4 +74,4 @@ npx serve demo           # then open the printed URL for the live editor demo
 
 ## Status
 
-Wave 0: core + studs + tests + demo. Next: a reference editor web component (`theme-kit/element`), an HA `Store` adapter, and dogfooding by migrating the origin card to consume this.
+Core + four studs + CVD + **localStorage & HA adapters**, 21 tests green. Next: a reference editor web component (`theme-kit/element`), then dogfooding by migrating the origin card to consume this.

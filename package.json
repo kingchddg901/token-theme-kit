@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.js",
     "./cvd": "./src/plugins/cvd.js",
-    "./adapters/local-storage": "./src/adapters/local-storage.js"
+    "./adapters/local-storage": "./src/adapters/local-storage.js",
+    "./adapters/ha": "./src/adapters/ha.js"
   },
   "files": ["src", "README.md", "LICENSE"],
   "scripts": {
