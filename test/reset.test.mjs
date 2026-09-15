@@ -119,45 +119,74 @@ test("isOverridden distinguishes absent from explicitly-undefined", () => {
  * reworded the comment. A guard that fires on its own documentation is measuring
  * the wrong text.
  */
-const resetAllDeclarations = () => {
-  // Strip EVERY comment first, then find the rule by its selector. Extracting by
-  // the BEGIN/END markers does not work: the match starts inside the opening
-  // comment, so there is no `/*` left for a stripper to anchor to and the prose
-  // survives into the assertion. Read the rule, not the region around it.
+/**
+ * Every rule that styles a reset control, with CSS COMMENTS STRIPPED.
+ *
+ * Stripping first, then matching by SELECTOR. Extracting by the BEGIN/END
+ * markers does not work: the match starts inside the opening comment, so there
+ * is no `/*` left for a stripper to anchor to and the prose survives into the
+ * assertion -- which is how this guard went red on its first run, over the two
+ * `var(` in the sentence explaining that var() is banned here.
+ *
+ * Matching by selector also means a reset tier added later is covered the day
+ * it is written, with no test edit. A marker-scoped guard would not be.
+ */
+const resetRules = () => {
   const css = STYLE.replace(/\/\*[\s\S]*?\*\//g, "");
-  const m = css.match(/\[part~="reset-all"\]\s*\{[^}]*\}/);
-  assert.ok(m, "the reset-all rule is missing from STYLE");
-  return m[0];
+  const rules = css.match(/\[part~="reset[^"]*"\][^{]*\{[^}]*\}/g) || [];
+  assert.ok(rules.length >= 4, `expected every reset tier to be styled, found ${rules.length}`);
+  return rules;
 };
 
-test("the reset-all rule contains no var() — nothing the user edits can reach it", () => {
-  const block = resetAllDeclarations();
-  const vars = block.match(/var\(/g) || [];
-  assert.deepEqual(
-    vars,
-    [],
-    "reset-all must not read a custom property: a token the editor edits could be set to " +
-      "match its background and hide the only control that undoes it"
-  );
-  // RED IF: anyone rewrites `background: #000000` as `var(--tk-reset-bg, #000)`.
+test("no reset control reads a custom property — none of them can be themed away", () => {
+  for (const rule of resetRules()) {
+    const vars = rule.match(/var\(/g) || [];
+    assert.deepEqual(
+      vars,
+      [],
+      "a reset must not read a custom property: a token the editor edits could be set to " +
+        `match its background and hide the control that undoes it —\n${rule}`
+    );
+  }
+  // RED IF: anyone rewrites `background: #000000` as `var(--tk-reset-bg, #000)`,
+  // in ANY tier — per-token, per-group or total.
 });
 
-test("reset-all pins the literals that make it legible", () => {
-  const block = resetAllDeclarations();
+test("the shared reset rule pins the literals that make every tier legible", () => {
+  const base = resetRules().find((r) => /^\[part~="reset"\]\s*\{/.test(r));
+  assert.ok(base, 'the shared [part~="reset"] rule is missing');
   for (const literal of ["background: #000000", "color: #ffffff", "border: 1px solid #ffffff"]) {
-    assert.ok(block.includes(literal), `reset-all lost: ${literal}`);
+    assert.ok(base.includes(literal), `the shared reset rule lost: ${literal}`);
   }
   // The outline is not decoration: #000 on a dark surround stays readable but
   // loses its edge, so it reads as floating text rather than a button.
-  // font-size is pinned for the same reason -- `font: inherit` on :host means a
-  // themed font could otherwise shrink the label away.
-  assert.match(block, /font-size:\s*14px/);
+});
+
+test("every tier pins its own font-size", () => {
+  // `font: inherit` on :host means a themed font could shrink a reset's label
+  // away as effectively as a colour could hide it.
+  for (const tier of ["reset-token", "reset-group", "reset-all"]) {
+    const rule = resetRules().find((r) => r.startsWith(`[part~="${tier}"]`));
+    assert.ok(rule, `no rule for ${tier}`);
+    assert.match(rule, /font-size:\s*\d/, `${tier} does not pin a font-size`);
+  }
+});
+
+test("hover stays literal — inverting is still two fixed colours", () => {
+  const hover = resetRules().find((r) => r.includes(":hover"));
+  assert.ok(hover, "the reset hover rule is missing");
+  assert.ok(hover.includes("#ffffff") && hover.includes("#000000"));
+  assert.equal((hover.match(/var\(/g) || []).length, 0);
+  // RED IF: hover is restyled as `color: var(--tk-fg)` — a hover state that
+  // vanishes is a control you cannot confirm you are about to press.
 });
 
 test("every OTHER control is themed — the invariant is scoped, not blanket", () => {
   // If this fails, the fix was "make it all literal", which throws away live
   // preview. The point is one un-themeable escape hatch, not a frozen editor.
-  const outside = STYLE.replace(/BEGIN RESET-ALL[\s\S]*?END RESET-ALL/, "");
+  const marked = /BEGIN RESET CONTROLS[\s\S]*?END RESET CONTROLS/;
+  assert.match(STYLE, marked, "the reset-controls markers moved — this guard stops guarding");
+  const outside = STYLE.replace(marked, "");
   assert.ok(outside.includes("var(--tk-line"));
   assert.ok(outside.includes("var(--tk-dim"));
 });

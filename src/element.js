@@ -181,7 +181,7 @@ export class ThemeKitEditor extends HTMLElement {
     // there is the one you reach for when everything else has gone wrong.
     root.appendChild(
       this._resetButton({
-        part: "reset-all",
+        part: "reset reset-all",
         label: "Reset all to defaults",
         title: "Clear every override and return every token to its declared default",
         onClick: () => this.resetAll(),

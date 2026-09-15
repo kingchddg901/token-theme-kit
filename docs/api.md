@@ -222,17 +222,27 @@ import { resetValues, groupKeys, isOverridden } from "token-theme-kit";
 const { values, changed } = resetValues(current, ["accent"]); // or null for all
 ```
 
-### The reset-all button is deliberately not themeable
+### No reset control is themeable
 
 Everything else in the editor is styled by the tokens the editor edits — that is
 live preview and it is the point. But it makes every control reachable by a bad
 value: set text colour to match surface colour and the UI that would undo it is
 gone, and the value is already persisted, so a reload does not help.
 
-So `reset-all` is `#000000` on `#ffffff` with a white outline, as literals, with
-no `var()` anywhere in the rule. 21:1, dependent on nothing. On a light theme it
-reads as an out-of-place black button; a recovery control has to be legible, not
-tasteful. `test/reset.test.mjs` fails if a `var()` ever appears in that rule.
+So **every** reset — per token, per group, total — is `#000000` on `#ffffff`
+with a white outline, as literals, with no `var()` anywhere in any of those
+rules. 21:1, dependent on nothing. Hover inverts to `#ffffff` on `#000000`,
+still two literals. On a light theme they read as out-of-place black controls;
+a recovery control has to be legible, not tasteful.
+
+Covering the per-token resets and not only the total one buys something
+specific: when the surrounding editor does vanish, the column of black `↺`
+buttons is still visible and is a map of the rows — so the recovery is "undo the
+one token I just broke" rather than "discard everything". Without it the total
+reset is the only survivor, and the nuclear option is the only option.
+
+`test/reset.test.mjs` matches those rules by selector, so a reset tier added
+later is covered the day it is written.
 
 Not defended: an ancestor with `opacity`, `filter` or `mix-blend-mode`. Nothing
 self-contained survives that, and it would take the whole page with it.
