@@ -15,6 +15,8 @@ export { createControlTypeRegistry, BUILTIN_CONTROL_TYPES } from "./control-type
 export { createValidatorRegistry } from "./validators.js";
 export { buildEditorModel, resolveValues } from "./editor-model.js";
 export { computeVars, applyVars, createPreview } from "./apply.js";
+// reset: remove overrides so tokens fall back through resolution (never write a default back)
+export { resetValues, groupKeys, isOverridden } from "./reset.js";
 export { parseColor, formatColor, luminance, contrast } from "./color.js";
 
 // default client-side persistence adapter (stud #4 default; HA is a plugin)

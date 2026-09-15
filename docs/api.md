@@ -191,9 +191,55 @@ ed.registerWidget(input, renderer); // view-side custom widget
 ed.kit = kit;                     // triggers load + self-build
 ed.values;                        // get/set current values
 // emits a "change" CustomEvent { detail: { key, values } }
+
+ed.resetToken(key);               // one token
+ed.resetGroup(groupId);           // every token in a group
+ed.resetAll();                    // every override
+// each returns the number of overrides actually cleared (0 = nothing happened,
+// nothing persisted) and emits a "reset" CustomEvent { detail: { scope, changed, values } }
 ```
 
 **Widget renderer** — `(control, ctx) => HTMLElement`, where `ctx = { onChange(value), document }`. Built-in widgets: `color, range, number, select, checkbox, text`. Custom control types register a matching widget; unknown inputs fall back to a text field. A custom widget owns its own display state (the editor re-renders verdicts on change, never the inputs).
+
+### Reset — three tiers
+
+The editor renders a reset per token (`↺`), per group (in the legend), and one
+`Reset all to defaults` at the end. A reset **removes the override** so the token
+falls back through normal resolution; it never looks the default up and stores a
+copy of it. That distinction only shows itself later: a stored copy stays an
+override, so the token is pinned to whatever the default was on the day you
+reset, and a new kit version that re-declares it changes nothing.
+
+Unlike a value change — which repaints preview and verdicts only, so a drag never
+loses focus — a reset rebuilds the controls, because the inputs' own values are
+what changed. A click has already ended the gesture, so there is nothing to lose.
+
+Use the pure helpers directly if you are writing your own view:
+
+```js
+import { resetValues, groupKeys, isOverridden } from "token-theme-kit";
+
+const { values, changed } = resetValues(current, ["accent"]); // or null for all
+```
+
+### The reset-all button is deliberately not themeable
+
+Everything else in the editor is styled by the tokens the editor edits — that is
+live preview and it is the point. But it makes every control reachable by a bad
+value: set text colour to match surface colour and the UI that would undo it is
+gone, and the value is already persisted, so a reload does not help.
+
+So `reset-all` is `#000000` on `#ffffff` with a white outline, as literals, with
+no `var()` anywhere in the rule. 21:1, dependent on nothing. On a light theme it
+reads as an out-of-place black button; a recovery control has to be legible, not
+tasteful. `test/reset.test.mjs` fails if a `var()` ever appears in that rule.
+
+Not defended: an ancestor with `opacity`, `filter` or `mix-blend-mode`. Nothing
+self-contained survives that, and it would take the whole page with it.
+
+The stylesheet lives in `src/editor-style.js` rather than `element.js` so this can
+be asserted in Node — `element.js` declares `class … extends HTMLElement`, which
+throws the moment the module is evaluated without a DOM.
 
 ---
 

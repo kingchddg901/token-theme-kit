@@ -20,20 +20,11 @@
  * token registry itself changes (a group added/removed).
  */
 import { createWidgetRegistry } from "./widgets.js";
+import { resetValues, groupKeys, isOverridden } from "./reset.js";
+import { STYLE } from "./editor-style.js";
 
-const STYLE = `
-  :host { display: block; color: var(--tk-fg, inherit); font: inherit; }
-  fieldset { border: 1px solid var(--tk-line, #2a3550); border-radius: 10px;
-             margin: 0 0 12px; padding: 8px 12px 12px; }
-  legend { padding: 0 6px; color: var(--tk-dim, #8b98a5); font-size: 12px;
-           letter-spacing: .04em; text-transform: uppercase; }
-  .row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin: 8px 0; }
-  .verdict { font-size: 12.5px; margin: 1px 0 6px; }
-  .verdict.warn { color: var(--tk-warn, #e3b341); }
-  .verdict.error { color: var(--tk-error, #ff7b72); }
-  input[type=color] { width: 44px; height: 26px; padding: 0; border: 1px solid var(--tk-line, #2a3550);
-                      border-radius: 6px; background: none; cursor: pointer; }
-`;
+export { STYLE };
+
 
 export class ThemeKitEditor extends HTMLElement {
   constructor() {
@@ -89,6 +80,42 @@ export class ThemeKitEditor extends HTMLElement {
     this.dispatchEvent(new CustomEvent("change", { detail: { key, values: this.values } }));
   }
 
+  /**
+   * The three reset tiers — token (one key), group (a fieldset's keys), all (null).
+   *
+   * Unlike `_onChange`, this DOES rebuild: a reset changes the inputs' own values,
+   * and the inputs are exactly what the focus-safe patch path deliberately leaves
+   * alone. A click has already ended the gesture, so there is no focus to lose.
+   *
+   * A reset that clears nothing writes nothing — see resetValues' `changed`.
+   */
+  _reset(keys, scope) {
+    const { values, changed } = resetValues(this._values, keys);
+    if (!changed) return 0;
+    this._values = values;
+    this._preview?.apply(this._values);
+    this._kit.save(this._values);
+    this._renderFull();
+    this.dispatchEvent(
+      new CustomEvent("reset", { detail: { scope, changed, values: this.values } })
+    );
+    return changed;
+  }
+
+  resetToken(key) { return this._reset([key], "token"); }
+  resetGroup(groupId) { return this._reset(groupKeys(this._kit.editorModel(this._values), groupId), "group"); }
+  resetAll() { return this._reset(null, "all"); }
+
+  _resetButton({ part, label, title, onClick }) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("part", part);
+    b.textContent = label;
+    b.title = title;
+    b.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); onClick(); });
+    return b;
+  }
+
   _renderFull() {
     const root = this.shadowRoot;
     root.textContent = "";
@@ -106,8 +133,17 @@ export class ThemeKitEditor extends HTMLElement {
       lg.setAttribute("part", "group-label");
       lg.textContent = group.label;
       fs.appendChild(lg);
+      lg.appendChild(
+        this._resetButton({
+          part: "reset reset-group",
+          label: "reset",
+          title: `Reset every token in ${group.label}`,
+          onClick: () => this.resetGroup(group.id),
+        })
+      );
       for (const c of group.controls) {
         const wrap = document.createElement("div");
+        wrap.className = "ctl";
         const row = document.createElement("label");
         row.className = "row";
         row.setAttribute("part", "row");
@@ -120,7 +156,19 @@ export class ThemeKitEditor extends HTMLElement {
         });
         row.append(name, widget);
         wrap.appendChild(row);
+        // Rendered for every token, like the eufy card's, rather than only for
+        // overridden ones: a control that appears and disappears as you edit
+        // reflows the row under the cursor. Clearing nothing is a no-op.
+        wrap.appendChild(
+          this._resetButton({
+            part: isOverridden(this._values, c.key) ? "reset reset-token is-set" : "reset reset-token",
+            label: "↺",
+            title: `Reset ${c.label}`,
+            onClick: () => this.resetToken(c.key),
+          })
+        );
         const verdicts = document.createElement("div");
+        verdicts.className = "verdicts";
         this._verdictNodes.set(c.key, verdicts);
         this._fillVerdicts(verdicts, c.verdicts);
         wrap.appendChild(verdicts);
@@ -128,6 +176,17 @@ export class ThemeKitEditor extends HTMLElement {
       }
       root.appendChild(fs);
     }
+
+    // Last. Always rendered, never conditional: the one control that has to be
+    // there is the one you reach for when everything else has gone wrong.
+    root.appendChild(
+      this._resetButton({
+        part: "reset-all",
+        label: "Reset all to defaults",
+        title: "Clear every override and return every token to its declared default",
+        onClick: () => this.resetAll(),
+      })
+    );
   }
 
   _patchVerdicts() {

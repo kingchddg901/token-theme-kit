@@ -9,12 +9,24 @@
     "./adapters/local-storage": "./src/adapters/local-storage.js",
     "./adapters/ha": "./src/adapters/ha.js",
     "./element": "./src/element.js",
-    "./widgets": "./src/widgets.js"
+    "./widgets": "./src/widgets.js",
+    "./editor-style": "./src/editor-style.js"
   },
-  "files": ["src", "README.md", "LICENSE"],
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "test": "node --test"
   },
-  "keywords": ["design-tokens", "theme", "theming", "css-variables", "home-assistant", "lovelace"],
+  "keywords": [
+    "design-tokens",
+    "theme",
+    "theming",
+    "css-variables",
+    "home-assistant",
+    "lovelace"
+  ],
   "license": "MIT"
 }
