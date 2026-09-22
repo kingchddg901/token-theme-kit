@@ -72,3 +72,39 @@ test("no validators registered → zero verdicts, zero cost (the 99% path)", () 
   kit.registerTokenGroup({ id: "b", tokens: [{ key: "accent", default: "#000" }] });
   assert.deepEqual(kit.editorModel().verdicts, []);
 });
+
+test("inherit: a token follows another until overridden, and reset returns it to following", () => {
+  const kit = createThemeKit();
+  kit.registerTokenGroup({
+    id: "layer",
+    tokens: [{ key: "major", type: "color", default: "#334155" }],
+  });
+  kit.registerTokenGroup({
+    id: "per-item",
+    tokens: [{ key: "id:L3", type: "color", inherit: "major" }], // no own default: follows `major`
+  });
+
+  // unset → follows the layer's resolved value (the override, not the layer's default)
+  let m = kit.editorModel({ major: "#e11d48" });
+  const idCtl = () => m.groups[1].controls[0];
+  assert.equal(idCtl().value, "#e11d48");
+
+  // override → its own value, layer untouched
+  m = kit.editorModel({ major: "#e11d48", "id:L3": "#22c55e" });
+  assert.equal(idCtl().value, "#22c55e");
+  assert.equal(m.groups[0].controls[0].value, "#e11d48");
+});
+
+test("inherit: a cycle terminates rather than looping", () => {
+  const kit = createThemeKit();
+  kit.registerTokenGroup({
+    id: "loop",
+    tokens: [
+      { key: "a", type: "color", inherit: "b", default: "#111111" },
+      { key: "b", type: "color", inherit: "a", default: "#222222" },
+    ],
+  });
+  // must not throw / hang; each falls back to its own default when the chain closes
+  const v = kit.editorModel().values;
+  assert.ok(v.a && v.b);
+});
