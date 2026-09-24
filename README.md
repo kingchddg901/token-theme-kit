@@ -92,4 +92,8 @@ Dogfooded against a separate, opinionated theme system — a Lovelace card of ~4
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+[CC0 1.0 Universal](LICENSE) — public domain. To the extent possible under law, Chris King has waived
+all copyright and related or neighbouring rights to `token-theme-kit`. **No attribution required** —
+use it, fork it, vendor it, sell it, no notice to keep. (Credit is welcome, never owed.)
+
+Released under MIT before 2026-09-24; copies obtained under that licence remain valid under its terms.
